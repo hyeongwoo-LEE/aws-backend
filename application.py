@@ -4,6 +4,8 @@ from flask_cors import CORS
 import os
 from flaskext.mysql import MySQL
 import redis
+import logging
+from logstash_async.handler import AsynchronousLogstashHandler
 
 application = Flask(__name__)
 
@@ -21,9 +23,14 @@ mysql.init_app(application)
 # redis
 db = redis.Redis(os.environ["REDIS_HOST"], decode_responses=True)
 
+#logstash
+python_logger = logging.getLogger('python-logstash-logger')
+python_logger.setLevel(logging.INFO)
+python_logger.addHandler(AsynchronousLogstashHandler(os.environ["LOGSTASH_HOST"], 5044, database_path=''))
 
 @application.route('/')
 def main():
+    python_logger.info('main')
     return "핵심 쏙쏙 AWS"
 
 @application.route('/fileupload', methods=['POST'])
